@@ -1,0 +1,19 @@
+{
+  "name": "movie-app",
+  "version": "1.0.0",
+  "description": "Repositorio del curso de API movie data base.",
+  "main": "index.html",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/K-ser/movie-app.git"
+  },
+  "author": "KevinG",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/K-ser/movie-app/issues"
+  },
+  "homepage": "https://github.com/K-ser/movie-app#readme"
+}
