@@ -1,3 +1,5 @@
+// AQUI VAMOS A CREAR LAS FUNCIONES QUE VAN A CONSUMIR LA API
+
 const api = axios.create({
   baseURL: 'https://api.themoviedb.org/3',
   headers: {
@@ -9,10 +11,10 @@ const api = axios.create({
 })
 
 async function getTrendingMoviesPreview() {
-  const response = await api(`/trending/movie/day`);
-  const data = response.data;
-  const trendingContainer = document.querySelector('.trendingPreview-container .trendingPreview-movieList');
+  const {data} = await api(`/trending/movie/day`);
+  console.log(data);
 
+  const trendingContainer = document.querySelector('.trendingPreview-container .trendingPreview-movieList');
   const movies = data.results;
   movies.forEach(movie => {
     const movieContainer = document.createElement('div');
@@ -29,8 +31,7 @@ async function getTrendingMoviesPreview() {
 }
 
 async function getCategoriesPreviewList() {
-  const response = await api(`/genre/movie/list`);
-  const data = response.data;
+  const {data} = await api(`/genre/movie/list`);
   const categoriesContainer = document.querySelector('.categoriesPreview-container .categoriesPreview-list');
 
   const categories = data.genres;
@@ -50,5 +51,7 @@ async function getCategoriesPreviewList() {
     categoriesContainer.appendChild(categoryContainer)
   });
 }
-getTrendingMoviesPreview();
-getCategoriesPreviewList()
+
+async function getMovieDetail() {
+
+}
