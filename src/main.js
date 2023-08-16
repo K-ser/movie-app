@@ -12,9 +12,10 @@ const api = axios.create({
 
 async function getTrendingMoviesPreview() {
   const {data} = await api(`/trending/movie/day`);
-  console.log(data);
+  console.log(`Peliculas en trending: `, data);
 
   const trendingContainer = document.querySelector('.trendingPreview-container .trendingPreview-movieList');
+  trendingContainer.innerHTML = '';
   const movies = data.results;
   movies.forEach(movie => {
     const movieContainer = document.createElement('div');
@@ -28,12 +29,15 @@ async function getTrendingMoviesPreview() {
     movieContainer.appendChild(movieImg);
     trendingContainer.appendChild(movieContainer);
   });
+  const showDetail = document.querySelectorAll('.movie-img');
+  showDetail.forEach((item, index) => item.addEventListener('click', () => getMovieDetails(movies[index].id)));
 }
 
 async function getCategoriesPreviewList() {
   const {data} = await api(`/genre/movie/list`);
-  const categoriesContainer = document.querySelector('.categoriesPreview-container .categoriesPreview-list');
 
+  const categoriesContainer = document.querySelector('.categoriesPreview-container .categoriesPreview-list');
+  categoriesContainer.innerHTML = '';
   const categories = data.genres;
   categories.forEach(category => {
 
@@ -50,8 +54,45 @@ async function getCategoriesPreviewList() {
     categoryContainer.appendChild(categoryTitle);
     categoriesContainer.appendChild(categoryContainer)
   });
-}
+};
 
-async function getMovieDetail() {
+// async function showMovieDetails(id) {
+//   await getMovieDetails(id);
+//   location.hash = 'movie=';
+// }
 
-}
+async function getMovieDetails(id) {
+  const {data} = await api(`/movie/${id}`, {
+    params: {
+      language: 'es-ES',
+    },
+  });
+  console.log('Detalles de pelicula:', data);
+
+  const movieTitle = document.querySelector('.movieDetail-container .movieDetail-title');
+  const movieScore = document.querySelector('.movieDetail-container .movieDetail-score');
+  const movieDescription = document.querySelector('.movieDetail-container .movieDetail-description');
+  movieTitle.innerText = data.original_title;
+  movieScore.innerText = data.vote_average;
+  movieDescription.innerText = data.overview;
+
+  const categoriesList = document.querySelector('.movieDetail-container .categories-list')
+  categoriesList.innerHTML = '';
+  const categorires = data.genres;
+  categorires.forEach(category => {
+    const categoryContainer = document.createElement('div');
+    categoryContainer.classList.add('category-container');
+
+    const categoryTitle = document.createElement('h3');
+    categoryTitle.setAttribute('id', `id${category.id}`)
+    categoryTitle.classList.add('category-title');
+
+    const categoryTitleText = document.createTextNode(`${category.name}`);
+
+    categoryTitle.appendChild(categoryTitleText);
+    categoryContainer.appendChild(categoryTitle);
+    categoriesList.appendChild(categoryContainer);
+  });
+
+  location.hash = '#movie=';
+};
