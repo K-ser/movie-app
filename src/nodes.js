@@ -4,7 +4,7 @@
 const headerSection = document.querySelector('#header');
 const trendingPreviewSection = document.querySelector('#trendingPreview');
 const categoriesPreviewSection = document.querySelector('#categoriesPreview');
-const genericListSection = document.querySelector('#genericList');
+const genericSection = document.querySelector('#genericList');
 const movieDetailSection = document.querySelector('#movieDetail');
 
 //List & containers
@@ -24,6 +24,6 @@ const searchFormBtn = document.querySelector('#searchBtn');
 
 const trendingBtn = document.querySelector('.trendingPreview-btn');
 
-const movieDetailTitle = document.querySelector('.movieDetail-titleyy');
+const movieDetailTitle = document.querySelector('.movieDetail-title');
 const movieDetailScore = document.querySelector('.movieDetail-score');
 const movieDetailDescription = document.querySelector('.movieDetail-description');
