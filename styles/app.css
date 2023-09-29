@@ -105,6 +105,23 @@ button {
   cursor: pointer;
 }
 
+.movie-container--loading {
+  background: var(--purple-light-2);
+  border-radius: 8px;
+  height: 225px;
+  min-height: 225px;
+  max-height: 225px;
+  width: 150px;
+  min-width: 150px;
+  max-width: 150px;
+  margin-bottom: 15px;
+  animation: skeleton-loading infinite 1.5s;
+}
+
+.movie-container--loading:nth-child(odd) {
+  animation-delay: .2s;
+}
+
 .movie-img {
   border-radius: 8px;
 }
@@ -117,6 +134,21 @@ button {
   flex-wrap: wrap;
 }
 
+.categories-container--loading {
+  background: var(--purple-light-2);
+  border-radius: 8px;
+  height: 25px;
+  min-height: 25px;
+  max-height: 25px;
+  /* width: 150px;
+  min-width: 150px;
+  max-width: 150px; */
+  margin-bottom: 15px;
+  animation: loading-skeleton infinite 1.5s;
+}
+.categories-container--loading:nth-child(odd) {
+  animation-delay: .2s;
+}
 
 /* Header */
 .header-container {
@@ -356,4 +388,14 @@ footer {
 /* Navigation */
 .inactive {
   display: none;
+}
+
+/* Animations */
+@keyframes skeleton-loading {
+  0%, 100% {
+    opacity: 100%;
+  }
+  50% {
+    opacity: 0%;
+  }
 }

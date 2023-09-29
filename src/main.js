@@ -13,6 +13,26 @@ const api = axios.create({
 
 
 // Utils
+function loadingMovies(container) {
+  container.innerHTML = '';
+  for (let i = 0; i < 10; i++) {
+    const movieContainer = document.createElement('div');
+    movieContainer.classList.add('movie-container');
+    movieContainer.classList.add('movie-container--loading');
+
+    container.appendChild(movieContainer);
+  }
+}
+function loadingCategories(container) {
+  container.innerHTML = '';
+  for (let i = 0; i < 10; i++) {
+    const categoryContainer = document.createElement('div');
+    categoryContainer.classList.add('category-container');
+    categoryContainer.classList.add('categories-container--loading');
+
+    container.appendChild(categoryContainer);
+  }
+}
 
 function createMovies(movies, container) {
   container.innerHTML = '';
@@ -58,6 +78,8 @@ function createCategories(categories, container) {
 // Llamados a la API
 
 async function getTrendingMoviesPreview() {
+  loadingMovies(trendingPreviewMovieList);
+
   const {data} = await api(`/trending/movie/day`);
   console.log(`Peliculas en trending: `, data);
 
@@ -66,6 +88,7 @@ async function getTrendingMoviesPreview() {
 }
 
 async function getTrendingMovies() {
+  loadingMovies(genericSection);
   const {data} = await api(`/trending/movie/day`);
   console.log(`Peliculas en trending: `, data);
 
@@ -74,13 +97,15 @@ async function getTrendingMovies() {
 }
 
 async function getCategoriesPreviewList() {
+  loadingCategories(categoriesPreviewList);
   const {data} = await api(`/genre/movie/list`);
-
+  
   const categories = data.genres;
   createCategories(categories, categoriesPreviewList);
 };
 
 async function getMoviesByCategory(id) {
+  loadingMovies(genericSection);
   const {data} = await api(`/discover/movie`, {
     params: {
       with_genres: id,
@@ -92,6 +117,7 @@ async function getMoviesByCategory(id) {
 };
 
 async function getMoviesBySearch(query) {
+  loadingMovies(genericSection);
   const {data} = await api(`/search/movie`, {
     params: {
       query,
@@ -103,6 +129,7 @@ async function getMoviesBySearch(query) {
 };
 
 async function getMovieDetails(id) {
+  loadingCategories(movieDetailCategoriesList)
   const {data: movie} = await api(`/movie/${id}`);
   console.log('Detalles de pelicula:', movie);
   
@@ -122,8 +149,9 @@ async function getMovieDetails(id) {
 };
 
 async function getRelatedMovies(id) {
+  loadingMovies(relatedMoviesContainer);
   const {data} = await api(`https://api.themoviedb.org/3/movie/${id}/recommendations`);
-  const relatedMovies = data.results.slice(0, 3);
+  const relatedMovies = data.results.slice(0, 10);
 
   createMovies(relatedMovies, relatedMoviesContainer);
 }
