@@ -13,29 +13,25 @@ const api = axios.create({
 
 
 // Utils
-function loadingMovies(container) {
-  container.innerHTML = '';
-  for (let i = 0; i < 10; i++) {
-    const movieContainer = document.createElement('div');
-    movieContainer.classList.add('movie-container');
-    movieContainer.classList.add('movie-container--loading');
+const lazyLoader = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const url = entry.target.getAttribute('data-img');
+      entry.target.setAttribute('src', url);
+      lazyLoader.unobserve(entry.target);
+    }
+  })
+})
 
-    container.appendChild(movieContainer);
+
+function createMovies(movies, container, {
+  lazyLoad = false,
+  clean = true,
+} = {}) {
+  if (clean) {
+    container.innerHTML = '';
   }
-}
-function loadingCategories(container) {
-  container.innerHTML = '';
-  for (let i = 0; i < 10; i++) {
-    const categoryContainer = document.createElement('div');
-    categoryContainer.classList.add('category-container');
-    categoryContainer.classList.add('categories-container--loading');
 
-    container.appendChild(categoryContainer);
-  }
-}
-
-function createMovies(movies, container) {
-  container.innerHTML = '';
   movies.forEach(movie => {
     const movieContainer = document.createElement('div');
     movieContainer.classList.add('movie-container');
@@ -43,7 +39,17 @@ function createMovies(movies, container) {
     const movieImg = document.createElement('img');
     movieImg.classList.add('movie-img');
     movieImg.setAttribute('alt', movie.title);
-    movieImg.setAttribute('src', `https://image.tmdb.org/t/p/w300${movie.poster_path}`);
+    movieImg.setAttribute(
+      lazyLoad ? 'data-img' : 'src', 
+      `https://image.tmdb.org/t/p/w300${movie.poster_path}`);
+
+    movieImg.addEventListener('error', () => {
+      movieImg.setAttribute('src', 'https://img.freepik.com/vector-premium/ops-pop-art-discurso-dibujos-animados_76844-964.jpg?w=740');
+    });
+
+    if (lazyLoad) {
+      lazyLoader.observe(movieImg);
+    }
 
     movieContainer.appendChild(movieImg);
     container.appendChild(movieContainer);
@@ -75,6 +81,27 @@ function createCategories(categories, container) {
   });
 };
 
+function loadingMovies(container) {
+  container.innerHTML = '';
+  for (let i = 0; i < 10; i++) {
+    const movieContainer = document.createElement('div');
+    movieContainer.classList.add('movie-container');
+    movieContainer.classList.add('movie-container--loading');
+
+    container.appendChild(movieContainer);
+  }
+}
+function loadingCategories(container) {
+  container.innerHTML = '';
+  for (let i = 0; i < 10; i++) {
+    const categoryContainer = document.createElement('div');
+    categoryContainer.classList.add('category-container');
+    categoryContainer.classList.add('categories-container--loading');
+
+    container.appendChild(categoryContainer);
+  }
+}
+
 // Llamados a la API
 
 async function getTrendingMoviesPreview() {
@@ -84,7 +111,11 @@ async function getTrendingMoviesPreview() {
   console.log(`Peliculas en trending: `, data);
 
   const movies = data.results;
-  createMovies(movies, trendingPreviewMovieList);
+  createMovies(movies, trendingPreviewMovieList, 
+    {
+      lazyLoad: true, 
+      clean: true
+    });
 }
 
 async function getTrendingMovies() {
@@ -93,8 +124,38 @@ async function getTrendingMovies() {
   console.log(`Peliculas en trending: `, data);
 
   const movies = data.results;
-  createMovies(movies, genericSection);
+  createMovies(movies, genericSection, {
+    lazyLoad: true,
+    clean: true
+  });
+
+  const btnLoadMore = document.createElement('button');
+  btnLoadMore.innerText = 'Cargar mas';
+  btnLoadMore.addEventListener('click', getPaginatedTrendingMovies);
+  genericSection.appendChild(btnLoadMore);
 }
+
+let page = 1;
+
+async function getPaginatedTrendingMovies() {
+  page++;
+  const {data} = await api(`/trending/movie/day`, {
+    params: {
+      page,
+    }
+  });
+
+  const movies = data.results;
+  createMovies(movies, genericSection, {
+    lazyLoad: true,
+    clean: false
+  });
+  
+  const btnLoadMore = document.createElement('button');
+  btnLoadMore.innerText = 'Cargar mas';
+  btnLoadMore.addEventListener('click', getPaginatedTrendingMovies);
+  genericSection.appendChild(btnLoadMore);
+};
 
 async function getCategoriesPreviewList() {
   loadingCategories(categoriesPreviewList);
@@ -113,7 +174,7 @@ async function getMoviesByCategory(id) {
   });
   
   const movies = data.results;
-  createMovies(movies, genericSection);
+  createMovies(movies, genericSection, true);
 };
 
 async function getMoviesBySearch(query) {
