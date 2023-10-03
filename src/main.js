@@ -129,10 +129,7 @@ async function getTrendingMovies() {
     clean: true
   });
 
-  const btnLoadMore = document.createElement('button');
-  btnLoadMore.innerText = 'Cargar mas';
-  btnLoadMore.addEventListener('click', getPaginatedTrendingMovies);
-  genericSection.appendChild(btnLoadMore);
+  createBtn();
 }
 
 let page = 1;
@@ -145,14 +142,22 @@ async function getPaginatedTrendingMovies() {
     }
   });
 
+  
   const movies = data.results;
   createMovies(movies, genericSection, {
     lazyLoad: true,
     clean: false
   });
   
+  const btn = document.querySelector('#btnLoadMore');
+  genericSection.removeChild(btn);
+  createBtn();
+};
+
+function createBtn() {
   const btnLoadMore = document.createElement('button');
   btnLoadMore.innerText = 'Cargar mas';
+  btnLoadMore.setAttribute('id', 'btnLoadMore');
   btnLoadMore.addEventListener('click', getPaginatedTrendingMovies);
   genericSection.appendChild(btnLoadMore);
 };
