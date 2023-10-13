@@ -122,44 +122,35 @@ async function getTrendingMovies() {
   loadingMovies(genericSection);
   const {data} = await api(`/trending/movie/day`);
   console.log(`Peliculas en trending: `, data);
+  maxPage = data.total_pages;
+  console.log(maxPage)
 
   const movies = data.results;
   createMovies(movies, genericSection, {
     lazyLoad: true,
     clean: true
   });
-
-  createBtn();
 }
 
-let page = 1;
-
 async function getPaginatedTrendingMovies() {
-  page++;
-  const {data} = await api(`/trending/movie/day`, {
-    params: {
-      page,
-    }
-  });
+  const {scrollTop, clientHeight, scrollHeight } = document.documentElement;
+  const isScrollBottom = (scrollTop + clientHeight) >= (scrollHeight - 15);
+  const isNotMaxPage = page < maxPage;
 
-  
-  const movies = data.results;
-  createMovies(movies, genericSection, {
-    lazyLoad: true,
-    clean: false
-  });
-  
-  const btn = document.querySelector('#btnLoadMore');
-  genericSection.removeChild(btn);
-  createBtn();
-};
+  if (isScrollBottom && isNotMaxPage) {
+    page++;
+    const {data} = await api(`/trending/movie/day`, {
+      params: {
+        page,
+      }
+    });
 
-function createBtn() {
-  const btnLoadMore = document.createElement('button');
-  btnLoadMore.innerText = 'Cargar mas';
-  btnLoadMore.setAttribute('id', 'btnLoadMore');
-  btnLoadMore.addEventListener('click', getPaginatedTrendingMovies);
-  genericSection.appendChild(btnLoadMore);
+    const movies = data.results;
+    createMovies(movies, genericSection, {
+      lazyLoad: true,
+      clean: false
+    });
+  }
 };
 
 async function getCategoriesPreviewList() {
@@ -177,9 +168,36 @@ async function getMoviesByCategory(id) {
       with_genres: id,
     },
   });
+  maxPage = data.total_pages;
+
   
   const movies = data.results;
-  createMovies(movies, genericSection, true);
+  createMovies(movies, genericSection, {
+    lazyLoad: true,
+    clean: true
+  });
+};
+
+async function getPaginatedCategoryMovies(id) {
+  const {scrollTop, clientHeight, scrollHeight } = document.documentElement;
+  const isScrollBottom = (scrollTop + clientHeight) >= (scrollHeight - 15);
+  const isNotMaxPage = page < maxPage;
+
+  if (isScrollBottom && isNotMaxPage) {
+    page++;
+    const {data} = await api(`/discover/movie`, {
+      params: {
+        with_genres: id,
+        page
+      },
+    });
+
+    const movies = data.results;
+    createMovies(movies, genericSection, {
+      lazyLoad: true,
+      clean: false
+    });
+  }
 };
 
 async function getMoviesBySearch(query) {
@@ -189,9 +207,35 @@ async function getMoviesBySearch(query) {
       query,
     },
   });
+  maxPage = data.total_pages;
 
   const movies = data.results;
-  createMovies(movies, genericSection);
+  createMovies(movies, genericSection, {
+    lazyLoad: true,
+    clean: true
+  });
+};
+
+async function getPaginatedSearchMovies(query) {
+  const {scrollTop, clientHeight, scrollHeight } = document.documentElement;
+  const isScrollBottom = (scrollTop + clientHeight) >= (scrollHeight - 15);
+  const isNotMaxPage = page < maxPage;
+
+  if (isScrollBottom && maxPage) {
+    page++;
+    const {data} = await api(`/search/movie`, {
+      params: {
+        query,
+        page
+      },
+    });
+
+    const movies = data.results;
+    createMovies(movies, genericSection, {
+      lazyLoad: true,
+      clean: false
+    });
+  }
 };
 
 async function getMovieDetails(id) {

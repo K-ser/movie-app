@@ -1,5 +1,8 @@
 // AQUI VAMOS A CREAR FUNCIONES QUE MANEJEN LA LOGICA DE NAVEGACION ENTRE PAGINAS
 
+let page = 1;
+let maxPage;
+
 arrowBtn.addEventListener('click', () => {
   // location.hash = '#home';
   history.back();
@@ -16,6 +19,13 @@ trendingBtn.addEventListener('click', () => {
 window.addEventListener('DOMContentLoaded', navigator, false);
 // window.addEventListener('DOMContentLoaded', () => location.hash = 'home', false);
 window.addEventListener('hashchange', navigator, false);
+
+
+const functionPagination = {
+  'trending': () => getPaginatedTrendingMovies(),
+  'search': () => getPaginatedSearchMovies(),
+  'category': () => getPaginatedCategoryMovies(),
+}
 
 function navigator() {
   const HASHES = {
@@ -73,6 +83,8 @@ function trendingPage() {
 
   headerCategoryTitle.innerText = 'Tendencias';
   getTrendingMovies();
+  page = 1;
+  window.addEventListener('scroll', () => getPaginatedTrendingMovies(), false);
 };
 
 function categoriesPage() {
@@ -97,6 +109,8 @@ function categoriesPage() {
   headerCategoryTitle.innerText = nameToShow;
 
   getMoviesByCategory(id, name);
+  page = 1;
+  window.addEventListener('scroll', () => getPaginatedCategoryMovies(id), false);
 };
 
 function searchPage() {
@@ -119,6 +133,9 @@ function searchPage() {
   const query = name.replaceAll('%20', ' ');
   headerCategoryTitle.innerText = query;
   getMoviesBySearch(query);
+  page = 1;
+  window.addEventListener('scroll', () => getPaginatedSearchMovies(query), false);
+
 };
 
 function movieDetailPage() {
