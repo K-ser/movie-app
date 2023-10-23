@@ -1,4 +1,4 @@
-// AQUI VAMOS A CREAR LAS FUNCIONES QUE VAN A CONSUMIR LA API
+// AQUI VAMOS A CREAR LAS FUNCIONES QUE VAN A CONSUMIR LA API Y VERIFICAR LOCALSTORAGE
 
 const api = axios.create({
   baseURL: 'https://api.themoviedb.org/3',
@@ -10,6 +10,31 @@ const api = axios.create({
     // 'language': 'es-ES',
   }
 });
+
+function likedMoviesList() {
+  const item = JSON.parse(localStorage.getItem('liked_movies'));
+  let movies;
+
+  if (item) {
+    movies = item;
+  } else {
+    movies = {};
+  }
+
+  return movies;
+}
+
+function likeMovie(movie) {
+  const likedMovies = likedMoviesList();
+
+  if (likedMovies[movie.id]) {
+    likedMovies[movie.id] = undefined;
+  } else {
+    likedMovies[movie.id] = movie;
+  }
+
+  localStorage.setItem('liked_movies', JSON.stringify(likedMovies));
+};
 
 
 // Utils
@@ -38,6 +63,9 @@ function createMovies(movies, container, {
 
     const movieImg = document.createElement('img');
     movieImg.classList.add('movie-img');
+    movieImg.addEventListener('click', () => {
+      location.hash = `#movie=${movie.id}`;
+    });
     movieImg.setAttribute('alt', movie.title);
     movieImg.setAttribute(
       lazyLoad ? 'data-img' : 'src', 
@@ -47,16 +75,15 @@ function createMovies(movies, container, {
       movieImg.setAttribute('src', 'https://img.freepik.com/vector-premium/ops-pop-art-discurso-dibujos-animados_76844-964.jpg?w=740');
     });
 
+    const movieBtn = createLikeButton(movie);
+
     if (lazyLoad) {
       lazyLoader.observe(movieImg);
     }
 
     movieContainer.appendChild(movieImg);
+    movieContainer.appendChild(movieBtn);
     container.appendChild(movieContainer);
-
-    movieContainer.addEventListener('click', () => {
-      location.hash = `#movie=${movie.id}`;
-    });
   });
 };
 
@@ -80,6 +107,17 @@ function createCategories(categories, container) {
     container.appendChild(categoryContainer)
   });
 };
+
+function createLikeButton(movie) {
+  const movieBtn = document.createElement('button');
+    movieBtn.classList.add('movie-btn');
+    movieBtn.addEventListener('click', () => {
+      movieBtn.classList.toggle('movie-btn--liked');
+      likeMovie(movie);
+    })
+
+  return movieBtn;
+}
 
 function loadingMovies(container) {
   container.innerHTML = '';
@@ -220,8 +258,8 @@ async function getPaginatedSearchMovies(query) {
   const {scrollTop, clientHeight, scrollHeight } = document.documentElement;
   const isScrollBottom = (scrollTop + clientHeight) >= (scrollHeight - 15);
   const isNotMaxPage = page < maxPage;
-
-  if (isScrollBottom && maxPage) {
+  
+  if (isScrollBottom && isNotMaxPage) {
     page++;
     const {data} = await api(`/search/movie`, {
       params: {
