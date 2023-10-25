@@ -18,7 +18,7 @@ trendingBtn.addEventListener('click', () => {
 });
 
 window.addEventListener('DOMContentLoaded', navigator, false);
-// window.addEventListener('DOMContentLoaded', () => location.hash = 'home', false);
+window.addEventListener('DOMContentLoaded', () => location.hash = 'home', false);
 window.addEventListener('hashchange', navigator, false);
 
 
