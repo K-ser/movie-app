@@ -75,12 +75,12 @@ function createMovies(movies, container, {
       movieImg.setAttribute('src', 'https://img.freepik.com/vector-premium/ops-pop-art-discurso-dibujos-animados_76844-964.jpg?w=740');
     });
 
-    const movieBtn = createLikeButton(movie);
-
+    
     if (lazyLoad) {
       lazyLoader.observe(movieImg);
     }
-
+    const movieBtn = createLikeButton(movie);
+    
     movieContainer.appendChild(movieImg);
     movieContainer.appendChild(movieBtn);
     container.appendChild(movieContainer);
@@ -110,11 +110,17 @@ function createCategories(categories, container) {
 
 function createLikeButton(movie) {
   const movieBtn = document.createElement('button');
-    movieBtn.classList.add('movie-btn');
-    movieBtn.addEventListener('click', () => {
-      movieBtn.classList.toggle('movie-btn--liked');
-      likeMovie(movie);
-    })
+  movieBtn.classList.add('movie-btn');
+  movieBtn.addEventListener('click', () => {
+    movieBtn.classList.toggle('movie-btn--liked');
+    likeMovie(movie);
+    getLikedMoviesPreview();
+  })
+  
+  const likedMovieInStorage = likedMoviesList();
+  if (likedMovieInStorage[movie.id]) {
+    movieBtn.classList.add('movie-btn--liked');
+  }
 
   return movieBtn;
 }
@@ -237,6 +243,13 @@ async function getPaginatedCategoryMovies(id) {
     });
   }
 };
+
+function getLikedMoviesPreview() {
+  const likedMoviesFromLocal = likedMoviesList();
+  const likedMovies = Object.values(likedMoviesFromLocal);
+  
+  createMovies(likedMovies, likeMoviesList, {lazyLoad: true, clean: true});
+}
 
 async function getMoviesBySearch(query) {
   loadingMovies(genericSection);

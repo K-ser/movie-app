@@ -39,8 +39,8 @@ function navigator() {
   
   for (let key in HASHES) {
     if (location.hash.startsWith(key)) {
-      window.scroll(0, 0);
       HASHES[key]();
+      window.scroll(0, 0);
       return;
     };
   };
@@ -65,6 +65,7 @@ function homePage() {
   
   getTrendingMoviesPreview();
   getCategoriesPreviewList();
+  getLikedMoviesPreview();
 };
 
 function trendingPage() {
@@ -81,6 +82,7 @@ function trendingPage() {
   trendingPreviewSection.classList.add('inactive');
   categoriesPreviewSection.classList.add('inactive');  
   genericSection.classList.remove('inactive');
+  likedSection.classList.add('inactive');
   movieDetailSection.classList.add('inactive'); 
 
   headerCategoryTitle.innerText = 'Tendencias';
@@ -103,6 +105,7 @@ function categoriesPage() {
   trendingPreviewSection.classList.add('inactive');
   categoriesPreviewSection.classList.add('inactive');  
   genericSection.classList.remove('inactive');
+  likedSection.classList.add('inactive');
   movieDetailSection.classList.add('inactive');
 
   const [_, completeHash] = location.hash.split('=');
