@@ -1,2 +1,2 @@
 # movie-app
-Repositorio del curso de API movie data base.
+App catalogo de peliculos con almacenamiento en LocalStorage
