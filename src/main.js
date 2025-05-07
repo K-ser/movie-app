@@ -1,4 +1,4 @@
-// AQUI VAMOS A CREAR LAS FUNCIONES QUE VAN A CONSUMIR LA API
+// AQUI VAMOS A CREAR LAS FUNCIONES QUE VAN A CONSUMIR LA API Y VERIFICAR LOCALSTORAGE
 
 const api = axios.create({
   baseURL: 'https://api.themoviedb.org/3',
@@ -11,26 +11,79 @@ const api = axios.create({
   }
 });
 
+function likedMoviesList() {
+  const item = JSON.parse(localStorage.getItem('liked_movies'));
+  let movies;
+
+  if (item) {
+    movies = item;
+  } else {
+    movies = {};
+  }
+
+  return movies;
+}
+
+function likeMovie(movie) {
+  const likedMovies = likedMoviesList();
+
+  if (likedMovies[movie.id]) {
+    likedMovies[movie.id] = undefined;
+  } else {
+    likedMovies[movie.id] = movie;
+  }
+
+  localStorage.setItem('liked_movies', JSON.stringify(likedMovies));
+};
+
 
 // Utils
+const lazyLoader = new IntersectionObserver((entries) => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const url = entry.target.getAttribute('data-img');
+      entry.target.setAttribute('src', url);
+      lazyLoader.unobserve(entry.target);
+    }
+  })
+})
 
-function createMovies(movies, container) {
-  container.innerHTML = '';
+
+function createMovies(movies, container, {
+  lazyLoad = false,
+  clean = true,
+} = {}) {
+  if (clean) {
+    container.innerHTML = '';
+  }
+
   movies.forEach(movie => {
     const movieContainer = document.createElement('div');
     movieContainer.classList.add('movie-container');
 
     const movieImg = document.createElement('img');
     movieImg.classList.add('movie-img');
-    movieImg.setAttribute('alt', movie.title);
-    movieImg.setAttribute('src', `https://image.tmdb.org/t/p/w300${movie.poster_path}`);
-
-    movieContainer.appendChild(movieImg);
-    container.appendChild(movieContainer);
-
-    movieContainer.addEventListener('click', () => {
+    movieImg.addEventListener('click', () => {
       location.hash = `#movie=${movie.id}`;
     });
+    movieImg.setAttribute('alt', movie.title);
+    movieImg.setAttribute(
+      lazyLoad ? 'data-img' : 'src', 
+      `https://image.tmdb.org/t/p/w300${movie.poster_path}`);
+
+    movieImg.addEventListener('error', () => {
+      movieImg.setAttribute('src', 'https://img.freepik.com/vector-premium/ops-pop-art-discurso-dibujos-animados_76844-964.jpg?w=740');
+    });
+
+    
+    if (lazyLoad) {
+      lazyLoader.observe(movieImg);
+    }
+    const movieBtn = createLikeButton(movie);
+    
+    movieContainer.appendChild(movieImg);
+    movieContainer.appendChild(movieBtn);
+    container.appendChild(movieContainer);
   });
 };
 
@@ -55,54 +108,189 @@ function createCategories(categories, container) {
   });
 };
 
+function createLikeButton(movie) {
+  const movieBtn = document.createElement('button');
+  movieBtn.classList.add('movie-btn');
+  movieBtn.addEventListener('click', () => {
+    movieBtn.classList.toggle('movie-btn--liked');
+    likeMovie(movie);
+    getLikedMoviesPreview();
+  })
+  
+  const likedMovieInStorage = likedMoviesList();
+  if (likedMovieInStorage[movie.id]) {
+    movieBtn.classList.add('movie-btn--liked');
+  }
+
+  return movieBtn;
+}
+
+function loadingMovies(container) {
+  container.innerHTML = '';
+  for (let i = 0; i < 10; i++) {
+    const movieContainer = document.createElement('div');
+    movieContainer.classList.add('movie-container');
+    movieContainer.classList.add('movie-container--loading');
+
+    container.appendChild(movieContainer);
+  }
+}
+function loadingCategories(container) {
+  container.innerHTML = '';
+  for (let i = 0; i < 10; i++) {
+    const categoryContainer = document.createElement('div');
+    categoryContainer.classList.add('category-container');
+    categoryContainer.classList.add('categories-container--loading');
+
+    container.appendChild(categoryContainer);
+  }
+}
+
 // Llamados a la API
 
 async function getTrendingMoviesPreview() {
+  loadingMovies(trendingPreviewMovieList);
+
   const {data} = await api(`/trending/movie/day`);
   console.log(`Peliculas en trending: `, data);
 
   const movies = data.results;
-  createMovies(movies, trendingPreviewMovieList);
+  createMovies(movies, trendingPreviewMovieList, 
+    {
+      lazyLoad: true, 
+      clean: true
+    });
 }
 
 async function getTrendingMovies() {
+  loadingMovies(genericSection);
   const {data} = await api(`/trending/movie/day`);
   console.log(`Peliculas en trending: `, data);
+  maxPage = data.total_pages;
+  console.log(maxPage)
 
   const movies = data.results;
-  createMovies(movies, genericSection);
+  createMovies(movies, genericSection, {
+    lazyLoad: true,
+    clean: true
+  });
 }
 
-async function getCategoriesPreviewList() {
-  const {data} = await api(`/genre/movie/list`);
+async function getPaginatedTrendingMovies() {
+  const {scrollTop, clientHeight, scrollHeight } = document.documentElement;
+  const isScrollBottom = (scrollTop + clientHeight) >= (scrollHeight - 15);
+  const isNotMaxPage = page < maxPage;
 
+  if (isScrollBottom && isNotMaxPage) {
+    page++;
+    const {data} = await api(`/trending/movie/day`, {
+      params: {
+        page,
+      }
+    });
+
+    const movies = data.results;
+    createMovies(movies, genericSection, {
+      lazyLoad: true,
+      clean: false
+    });
+  }
+};
+
+async function getCategoriesPreviewList() {
+  loadingCategories(categoriesPreviewList);
+  const {data} = await api(`/genre/movie/list`);
+  
   const categories = data.genres;
   createCategories(categories, categoriesPreviewList);
 };
 
 async function getMoviesByCategory(id) {
+  loadingMovies(genericSection);
   const {data} = await api(`/discover/movie`, {
     params: {
       with_genres: id,
     },
   });
+  maxPage = data.total_pages;
+
   
   const movies = data.results;
-  createMovies(movies, genericSection);
+  createMovies(movies, genericSection, {
+    lazyLoad: true,
+    clean: true
+  });
 };
 
+async function getPaginatedCategoryMovies(id) {
+  const {scrollTop, clientHeight, scrollHeight } = document.documentElement;
+  const isScrollBottom = (scrollTop + clientHeight) >= (scrollHeight - 15);
+  const isNotMaxPage = page < maxPage;
+
+  if (isScrollBottom && isNotMaxPage) {
+    page++;
+    const {data} = await api(`/discover/movie`, {
+      params: {
+        with_genres: id,
+        page
+      },
+    });
+
+    const movies = data.results;
+    createMovies(movies, genericSection, {
+      lazyLoad: true,
+      clean: false
+    });
+  }
+};
+
+function getLikedMoviesPreview() {
+  const likedMoviesFromLocal = likedMoviesList();
+  const likedMovies = Object.values(likedMoviesFromLocal);
+  
+  createMovies(likedMovies, likeMoviesList, {lazyLoad: true, clean: true});
+}
+
 async function getMoviesBySearch(query) {
+  loadingMovies(genericSection);
   const {data} = await api(`/search/movie`, {
     params: {
       query,
     },
   });
+  maxPage = data.total_pages;
 
   const movies = data.results;
-  createMovies(movies, genericSection);
+  createMovies(movies, genericSection, {
+    lazyLoad: true,
+    clean: true
+  });
+};
+
+async function getPaginatedSearchMovies(query) {
+  const {scrollTop, clientHeight, scrollHeight } = document.documentElement;
+  const isScrollBottom = (scrollTop + clientHeight) >= (scrollHeight - 15);
+  const isNotMaxPage = page < maxPage;
+  
+  if (isScrollBottom && isNotMaxPage) {
+    page++;
+    const {data} = await api(`/search/movie`, {
+      params: {
+        query,
+        page
+      },
+    });
+
+    const movies = data.results;
+    createMovies(movies, genericSection, {
+      lazyLoad: true,
+      clean: false
+    });
+  }
 };
 
 async function getMovieDetails(id) {
+  loadingCategories(movieDetailCategoriesList)
   const {data: movie} = await api(`/movie/${id}`);
   console.log('Detalles de pelicula:', movie);
   
@@ -122,8 +310,9 @@ async function getMovieDetails(id) {
 };
 
 async function getRelatedMovies(id) {
+  loadingMovies(relatedMoviesContainer);
   const {data} = await api(`https://api.themoviedb.org/3/movie/${id}/recommendations`);
-  const relatedMovies = data.results.slice(0, 3);
+  const relatedMovies = data.results.slice(0, 10);
 
   createMovies(relatedMovies, relatedMoviesContainer);
 }
