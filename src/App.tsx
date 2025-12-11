@@ -75,7 +75,7 @@ function App() {
           <div className="min-h-[60vh]">
             {favorites.length > 0 ? (
               <MovieGrid
-                title="💖 Mis Favoritos"
+                title="Mis Favoritos"
                 movies={favorites}
                 isFavorite={isFavorite}
                 onToggleFavorite={toggleFavorite}
